@@ -1,4 +1,6 @@
-﻿namespace Rexster
+﻿using System.Diagnostics;
+
+namespace Rexster
 {
     using System;
     using System.Collections.Concurrent;
@@ -120,7 +122,6 @@
         }
 
         private TcpClient NewTcpClient() {
-            System.Console.WriteLine("NEW CLIENT: "+tcpClientProvider+" / "+host+" / "+port);
             return (tcpClientProvider != null ? 
                 tcpClientProvider() : new TcpClient(this.host, this.port));
         }
@@ -130,6 +131,7 @@
             where TResponse : RexProMessage
         {
             TResponse result;
+            var sw = new Stopwatch();
 
             Stream stream;
 
@@ -147,7 +149,9 @@
             {
                 packer.Pack(ProtocolVersion).Pack(requestMessageType);
 
+                sw.Restart();
                 PackMessage(stream, message);
+                Debug.WriteLine("PackMessage: "+sw.Elapsed.TotalMilliseconds+"ms");
 
                 using (var unpacker = Unpacker.Create(stream, false))
                 {
