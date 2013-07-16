@@ -51,5 +51,31 @@
                 Assert.AreEqual(expected.Data.Name, actual.Data.Name);
             }
         }
+
+		[TestMethod]
+		public void RollbackSession() {
+			const string countQuery = "g.V.count()";
+
+			var expectCount = client.Query<int>(countQuery);
+			int actualCount;
+
+			using ( var session = client.StartSession() ) {
+				var vertex = client.Query<Vertex<TestVertex>>("g.addVertex()", session: session);
+				Assert.IsNotNull(vertex);
+
+				actualCount = client.Query<int>(countQuery, session: session);
+				Assert.AreEqual(expectCount+1, actualCount, "A vertex should be added.");
+
+				var rollback = client.Query<int>("g.rollback();1", session: session);
+				Assert.AreEqual(1, rollback);
+
+				actualCount = client.Query<int>(countQuery, session: session);
+				Assert.AreEqual(expectCount, actualCount, "The new vertex persists after rollback.");
+			}
+
+			actualCount = client.Query<int>(countQuery);
+			Assert.AreEqual(expectCount, actualCount, "The new vertex persists outside the session.");
+		}
+
     }
 }
