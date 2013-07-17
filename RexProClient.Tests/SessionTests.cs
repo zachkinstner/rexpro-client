@@ -77,5 +77,20 @@
 			Assert.AreEqual(expectCount, actualCount, "The new vertex persists outside the session.");
 		}
 
+		[TestMethod]
+		public void RollbackSessionSingleScript() {
+			const string testQuery = "a=g.V.count();"+
+				"g.addVertex();"+
+				"b=g.V.count();"+
+				"g.rollback();"+
+				"c=g.V.count();"+
+				"[a,b,c];";
+
+			var counts = client.Query<int[]>(testQuery);
+			Assert.AreEqual(3, counts.Length);
+			Assert.AreEqual(counts[0]+1, counts[1], "The new vertex was not created.");
+			Assert.AreEqual(counts[0], counts[2], "The new vertex persists after rollback.");
+		}
+
     }
 }
