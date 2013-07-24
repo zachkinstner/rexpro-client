@@ -60,10 +60,10 @@
 			int actualCount;
 
 			using ( var session = client.StartSession() ) {
-				var vertex = client.Query<Vertex<TestVertex>>("g.addVertex()", session: session);
+				var vertex = client.Query<Vertex<TestVertex>>("g.addVertex()", session: session, transaction: false);
 				Assert.IsNotNull(vertex);
 
-				actualCount = client.Query<int>(countQuery, session: session);
+				actualCount = client.Query<int>(countQuery, session: session, transaction: false);
 				Assert.AreEqual(expectCount+1, actualCount, "A vertex should be added.");
 
 				var rollback = client.Query<int>("g.rollback();1", session: session);
@@ -86,7 +86,7 @@
 				"c=g.V.count();"+
 				"[a,b,c];";
 
-			var counts = client.Query<int[]>(testQuery);
+			var counts = client.Query<int[]>(testQuery, transaction: false);
 			Assert.AreEqual(3, counts.Length);
 			Assert.AreEqual(counts[0]+1, counts[1], "The new vertex was not created.");
 			Assert.AreEqual(counts[0], counts[2], "The new vertex persists after rollback.");
